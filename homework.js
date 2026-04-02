@@ -57,6 +57,8 @@ const orders = [
  */
 function getProductById(products, productId) {
   // 請實作此函式
+  return products.find(item => item.id === productId
+  ) || null
 }
 
 /**
@@ -67,6 +69,9 @@ function getProductById(products, productId) {
  */
 function getProductsByCategory(products, category) {
   // 請實作此函式
+  const filterProduct = category === "全部" ? [...products] : products.filter(item => item.category === category)
+
+  return filterProduct
 }
 
 /**
@@ -77,6 +82,7 @@ function getProductsByCategory(products, category) {
  */
 function getDiscountRate(product) {
   // 請實作此函式
+  return Math.round(product.price / product.origin_price * 100) / 10 + "折"
 }
 
 /**
@@ -86,6 +92,7 @@ function getDiscountRate(product) {
  */
 function getAllCategories(products) {
   // 請實作此函式
+  return [...new Set(products.map(item => item.category))]
 }
 
 // ========================================
@@ -99,6 +106,7 @@ function getAllCategories(products) {
  */
 function calculateCartOriginalTotal(carts) {
   // 請實作此函式
+  return carts.reduce((acc, {product, quantity}) => acc += product.origin_price * quantity ,0)
 }
 
 /**
@@ -108,6 +116,7 @@ function calculateCartOriginalTotal(carts) {
  */
 function calculateCartTotal(carts) {
   // 請實作此函式
+  return carts.reduce((acc, {product, quantity}) => acc += product.price * quantity, 0)
 }
 
 /**
@@ -117,6 +126,7 @@ function calculateCartTotal(carts) {
  */
 function calculateSavings(carts) {
   // 請實作此函式
+  return carts.reduce((acc, {product, quantity}) => acc += (product.origin_price - product.price) * quantity, 0)
 }
 
 /**
@@ -126,6 +136,7 @@ function calculateSavings(carts) {
  */
 function calculateCartItemCount(carts) {
   // 請實作此函式
+  return carts.reduce((acc, {quantity}) => acc += quantity , 0)
 }
 
 /**
@@ -136,6 +147,7 @@ function calculateCartItemCount(carts) {
  */
 function isProductInCart(carts, productId) {
   // 請實作此函式
+  return carts.some(item => item.product.id === productId)
 }
 
 // ========================================
@@ -152,6 +164,28 @@ function isProductInCart(carts, productId) {
  */
 function addToCart(carts, product, quantity) {
   // 請實作此函式
+  const isExist = carts.some(item => item.product.id === product.id)
+
+  if(isExist) {
+    return carts.map(item =>{
+      if(item.product.id === product.id){
+        return {
+          ...item,
+          quantity: item.quantity + quantity
+        }
+      }
+      return item
+    })
+  } else{
+    return [
+      ...carts,
+      {
+        id: `cart-${carts.length +1}`,
+        product,
+        quantity
+      }
+    ]
+  }
 }
 
 /**
@@ -163,6 +197,18 @@ function addToCart(carts, product, quantity) {
  */
 function updateCartItemQuantity(carts, cartId, newQuantity) {
   // 請實作此函式
+  if (newQuantity <= 0) return carts.filter(item => item.id !== cartId)
+  
+  return carts.map(item => {
+    if(item.id === cartId) {
+      return {
+        ...item,
+        quantity: newQuantity
+      }
+    }
+    return item
+  })
+
 }
 
 /**
@@ -173,6 +219,7 @@ function updateCartItemQuantity(carts, cartId, newQuantity) {
  */
 function removeFromCart(carts, cartId) {
   // 請實作此函式
+  return carts.filter(item => item.id !== cartId)
 }
 
 /**
@@ -181,6 +228,7 @@ function removeFromCart(carts, cartId) {
  */
 function clearCart() {
   // 請實作此函式
+  return []
 }
 
 // ========================================
@@ -194,6 +242,7 @@ function clearCart() {
  */
 function calculateTotalRevenue(orders) {
   // 請實作此函式
+  return orders.reduce((acc, item) => item.paid ? acc + item.total : acc, 0)
 }
 
 /**
@@ -204,6 +253,7 @@ function calculateTotalRevenue(orders) {
  */
 function filterOrdersByStatus(orders, isPaid) {
   // 請實作此函式
+  return orders.filter(item => item.paid === isPaid)
 }
 
 /**
@@ -220,6 +270,27 @@ function filterOrdersByStatus(orders, isPaid) {
  */
 function generateOrderReport(orders) {
   // 請實作此函式
+  const report = {
+    totalOrders: orders.length,
+    paidOrders: 0,
+    unpaidOrders: 0,
+    totalRevenue: 0,
+    averageOrderValue: 0
+  }
+
+  let allOrdersTotalAmount = 0;
+  orders.forEach((item) => {
+
+    allOrdersTotalAmount += item.total
+    if(item.paid) {
+      report.paidOrders += 1 
+        report.totalRevenue += item.total
+    } else {
+      report.unpaidOrders += 1
+    }
+  })
+  report.averageOrderValue = allOrdersTotalAmount/orders.length
+  return report
 }
 
 /**
@@ -233,6 +304,16 @@ function generateOrderReport(orders) {
  */
 function groupOrdersByPayment(orders) {
   // 請實作此函式
+  return orders.reduce((acc, item) =>{
+    const payment = item.user.payment;
+
+    if(!acc[payment]){
+      acc[payment] = []
+    }
+    acc[payment].push(item)
+    return acc
+  }, {})
+
 }
 
 // ========================================
